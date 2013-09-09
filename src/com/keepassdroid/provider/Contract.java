@@ -37,7 +37,7 @@ public class Contract {
     };
     public final static Uri URI = new Uri.Builder()
             .scheme("content")
-            .authority("com.keepassdroid.provider")
+            .authority("com.hanhuy.android.keepshare.database")
             .appendPath("entries")
             .build();
     public static final String METHOD_OPEN = "open";

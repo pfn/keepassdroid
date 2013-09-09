@@ -53,8 +53,8 @@ public class DatabaseProvider extends ContentProvider {
 
     static {
         URI_MATCHER = new UriMatcher(0);
-        URI_MATCHER.addURI("com.keepassdroid.provider", "entries",   BY_SEARCH);
-        URI_MATCHER.addURI("com.keepassdroid.provider", "entries/#", BY_ID);
+        URI_MATCHER.addURI("com.hanhuy.android.keepshare.database", "entries",   BY_SEARCH);
+        URI_MATCHER.addURI("com.hanhuy.android.keepshare.database", "entries/#", BY_ID);
     }
     private volatile int startingUid;
     private Database db;

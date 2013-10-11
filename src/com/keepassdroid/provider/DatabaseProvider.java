@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.util.Log;
 import com.android.keepass.BuildConfig;
 import com.keepassdroid.Database;
+import com.keepassdroid.database.PwDatabase;
 import com.keepassdroid.database.PwEntry;
 import com.keepassdroid.database.PwGroup;
 import com.keepassdroid.database.exception.InvalidDBException;
@@ -160,13 +161,13 @@ public class DatabaseProvider extends ContentProvider {
                 case BY_SEARCH:
                     if (query == null)
                         return new PwCursor();
-                    return new PwCursor(db.Search(query));
+                    return new PwCursor(db.Search(query), db.pm);
                 case BY_ID:
                     String sid = uri.getLastPathSegment();
                     long id = Long.parseLong(sid);
                     for (UUID uuid : db.pm.entries.keySet()) {
                         if (id == Math.abs(uuid.getLeastSignificantBits()))
-                            return new PwCursor(db.pm.entries.get(uuid));
+                            return new PwCursor(db.pm.entries.get(uuid), db.pm);
                     }
             }
             return new PwCursor();
@@ -208,15 +209,19 @@ public class DatabaseProvider extends ContentProvider {
 
     private static class PwCursor extends AbstractCursor {
         private final List<PwEntry> entries;
+        private final PwDatabase database;
 
         PwCursor() {
             entries = Arrays.asList();
+            database = null;
         }
-        PwCursor(PwGroup group) {
+        PwCursor(PwGroup group, PwDatabase database) {
             entries = group == null ? Arrays.<PwEntry>asList() : group.childEntries;
+            this.database = database;
         }
-        PwCursor(PwEntry entry) {
+        PwCursor(PwEntry entry, PwDatabase database) {
             entries = Arrays.asList(entry);
+            this.database = database;
         }
         @Override
         public int getCount() {
@@ -230,14 +235,16 @@ public class DatabaseProvider extends ContentProvider {
 
         @Override
         public String getString(int i) {
+            final String s;
             switch (i) {
-                case 1: return entry().getTitle();
-                case 2: return entry().getUsername();
-                case 3: return entry().getPassword();
-                case 4: return entry().getUrl();
-                case 5: return entry().getNotes();
+                case 1:  s = entry().getTitle();    break;
+                case 2:  s = entry().getUsername(); break;
+                case 3:  s = entry().getPassword(); break;
+                case 4:  s = entry().getUrl();      break;
+                case 5:  s = entry().getNotes();    break;
+                default: s = null;                  break;
             }
-            return null;
+            return resolveReference(s);
         }
 
         @Override
@@ -300,6 +307,44 @@ public class DatabaseProvider extends ContentProvider {
         public boolean isNull(int i) {
             return getLong(i) != -1 || getString(i) != null;
         }
+        private final static String REF_MAGIC = "{REF:";
+        private String resolveReference(String s) {
+            if (s != null && s.startsWith(REF_MAGIC) && s.endsWith("}")) {
+                String tail = s.substring(REF_MAGIC.length());
+                if (tail.length() > 3) {
+                    String instructions = tail.substring(0, 3);
+                    if (!instructions.endsWith("@I"))
+                        return s;
+
+                    char c = instructions.charAt(0);
+                    String uuidRaw = tail.substring(4, tail.length() - 1);
+                    String uuid = uuidRaw.substring(0, 8) + "-" + uuidRaw.substring(8, 12) + "-" +
+                            uuidRaw.substring(12, 16) + "-" + uuidRaw.substring(16, 20) + "-" + uuidRaw.substring(20);
+                    UUID id = UUID.fromString(uuid);
+                    PwEntry entry = database.entries.get(id);
+                    if (entry == null)
+                        return s;
+                    switch (c) {
+                        case 'T':
+                            return resolveReference(entry.getTitle());
+                        case 'U':
+                            return resolveReference(entry.getUsername());
+                        case 'A':
+                            return resolveReference(entry.getUrl());
+                        case 'P':
+                            return resolveReference(entry.getPassword());
+                        case 'N':
+                            return resolveReference(entry.getNotes());
+                        default:
+                            return s;
+                    }
+                }
+                return s;
+            } else {
+                return s;
+            }
+        }
+
     }
 
 }

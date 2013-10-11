@@ -7,6 +7,7 @@ import android.os.Environment;
 import android.test.AndroidTestCase;
 
 import com.keepassdroid.provider.Contract;
+import com.keepassdroid.provider.DatabaseProvider;
 
 import java.io.File;
 import java.io.InputStream;
@@ -71,5 +72,8 @@ public class DatabaseProviderTest extends AndroidTestCase {
                 in.close();
             } catch (IOException ex) { }
         }
+    }
+    public void testReverseHex() {
+        assertEquals("efbeadde", DatabaseProvider.PwCursor.reverseHex("deadbeef"));
     }
 }

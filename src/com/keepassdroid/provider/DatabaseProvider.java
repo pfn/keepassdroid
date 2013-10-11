@@ -207,7 +207,8 @@ public class DatabaseProvider extends ContentProvider {
         return 0; // noop
     }
 
-    private static class PwCursor extends AbstractCursor {
+    // VisibleForTesting
+    public static class PwCursor extends AbstractCursor {
         private final List<PwEntry> entries;
         private final PwDatabase database;
 
@@ -308,6 +309,17 @@ public class DatabaseProvider extends ContentProvider {
             return getLong(i) != -1 || getString(i) != null;
         }
         private final static String REF_MAGIC = "{REF:";
+
+        // VisibleForTesting
+        public static String reverseHex(String in) {
+            StringBuilder b = new StringBuilder();
+            for (int i = in.length() - 1 ; i > 0; i -= 2) {
+                b.append(in.charAt(i - 1));
+                b.append(in.charAt(i));
+            }
+            return b.toString();
+        }
+
         private String resolveReference(String s) {
             if (s != null && s.startsWith(REF_MAGIC) && s.endsWith("}")) {
                 String tail = s.substring(REF_MAGIC.length());
@@ -317,7 +329,9 @@ public class DatabaseProvider extends ContentProvider {
                         return s;
 
                     char c = instructions.charAt(0);
-                    String uuidRaw = tail.substring(4, tail.length() - 1);
+                    String uuidWrongByteOrder = tail.substring(4, tail.length() - 1);
+                    String uuidRaw = reverseHex(uuidWrongByteOrder.substring(0, 16)) +
+                            reverseHex(uuidWrongByteOrder.substring(16));
                     String uuid = uuidRaw.substring(0, 8) + "-" + uuidRaw.substring(8, 12) + "-" +
                             uuidRaw.substring(12, 16) + "-" + uuidRaw.substring(16, 20) + "-" + uuidRaw.substring(20);
                     UUID id = UUID.fromString(uuid);

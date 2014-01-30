@@ -14,6 +14,7 @@ import com.keepassdroid.database.PwEntry;
 import com.keepassdroid.database.PwGroup;
 import com.keepassdroid.database.exception.InvalidDBException;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -60,15 +61,26 @@ public class DatabaseProvider extends ContentProvider {
     private volatile int startingUid;
     private Database db;
     private AuthzDatabaseHelper dbHelper;
+    private String databaseFile = ":invalid:initial:string:";
+    private long databaseLastModified = 0;
 
     @Override
     public Bundle call(String method, String arg, Bundle extras) {
         if (Contract.METHOD_OPEN.equals(method)) {
-            startingUid = Binder.getCallingUid();
-            Log.v(TAG, "content provider started by uid: " + startingUid);
+
             String database = extras.getString(Contract.EXTRA_DATABASE);
             String password = extras.getString(Contract.EXTRA_PASSWORD);
             String keyfile = extras.getString(Contract.EXTRA_KEYFILE);
+
+            File dbFile = new File(database);
+            int newUid = Binder.getCallingUid();
+
+            if (startingUid == newUid && databaseFile.equals(database) && databaseLastModified < dbFile.lastModified()) {
+                // skip loading database if already loaded and allowed access
+                return extras;
+            }
+            Log.v(TAG, "content provider started by uid: " + startingUid);
+
             Database d = new Database();
             try {
                 d.LoadData(getContext(), database,
@@ -80,6 +92,11 @@ public class DatabaseProvider extends ContentProvider {
             } catch (InvalidDBException e) {
                 extras.putString(Contract.EXTRA_ERROR, e.toString());
             }
+
+            databaseFile = database;
+            databaseLastModified = dbFile.lastModified();
+            startingUid = newUid;
+
             return extras;
         } else
             return super.call(method, arg, extras);

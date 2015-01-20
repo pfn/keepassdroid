@@ -59,16 +59,15 @@ public class AuthzActivity extends Activity {
         View.OnClickListener l = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                switch (view.getId()) {
-                    case R.id.always:
-                        authz.remember = true;
-                    case R.id.allow:
-                        authz.authz = true;
-                        break;
-                    case R.id.deny:
-                        authz.remember = false;
-                        authz.authz = false;
-                        break;
+                final int id = view.getId();
+                if (id == R.id.always) {
+                    authz.remember = true;
+                    authz.authz = true;
+                } else if (id == R.id.allow) {
+                    authz.authz = true;
+                } else if (id == R.id.deny) {
+                    authz.remember = false;
+                    authz.authz = false;
                 }
                 dbHelper.save(authz);
                 broadcastResult();

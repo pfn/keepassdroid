@@ -174,39 +174,6 @@ public abstract class GroupBaseActivity extends LockCloseListActivity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		switch ( item.getItemId() ) {
-		case R.id.menu_donate:
-			try {
-				Util.gotoUrl(this, R.string.donate_url);
-			} catch (ActivityNotFoundException e) {
-				Toast.makeText(this, R.string.error_failed_to_launch_link, Toast.LENGTH_LONG).show();
-				return false;
-			}
-			
-			return true;
-		case R.id.menu_lock:
-			App.setShutdown();
-			setResult(KeePass.EXIT_LOCK);
-			finish();
-			return true;
-		
-		case R.id.menu_search:
-			onSearchRequested();
-			return true;
-			
-		case R.id.menu_app_settings:
-			AppSettingsActivity.Launch(this);
-			return true;
-
-		case R.id.menu_change_master_key:
-			setPassword();
-			return true;
-			
-		case R.id.menu_sort:
-			toggleSort();
-			return true;
-
-		}
 		
 		return super.onOptionsItemSelected(item);
 	}

@@ -331,58 +331,6 @@ public class EntryActivity extends LockCloseActivity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		switch ( item.getItemId() ) {
-		case R.id.menu_donate:
-			try {
-				Util.gotoUrl(this, R.string.donate_url);
-			} catch (ActivityNotFoundException e) {
-				Toast.makeText(this, R.string.error_failed_to_launch_link, Toast.LENGTH_LONG).show();
-				return false;
-			}
-			
-			return true;
-		case R.id.menu_toggle_pass:
-			if ( mShowPassword ) {
-				item.setTitle(R.string.show_password);
-				mShowPassword = false;
-			} else {
-				item.setTitle(R.string.menu_hide_password);
-				mShowPassword = true;
-			}
-			setPasswordStyle();
-
-			return true;
-			
-		case R.id.menu_goto_url:
-			String url;
-			url = mEntry.getUrl();
-			
-			// Default http:// if no protocol specified
-			if ( ! url.contains("://") ) {
-				url = "http://" + url;
-			}
-			
-			try {
-				Util.gotoUrl(this, url);
-			} catch (ActivityNotFoundException e) {
-				Toast.makeText(this, R.string.no_url_handler, Toast.LENGTH_LONG).show();
-			}
-			return true;
-			
-		case R.id.menu_copy_user:
-			timeoutCopyToClipboard(mEntry.getUsername());
-			return true;
-			
-		case R.id.menu_copy_pass:
-			timeoutCopyToClipboard(new String(mEntry.getPassword()));
-			return true;
-			
-		case R.id.menu_lock:
-			App.setShutdown();
-			setResult(KeePass.EXIT_LOCK);
-			finish();
-			return true;
-		}
 		
 		return super.onOptionsItemSelected(item);
 	}

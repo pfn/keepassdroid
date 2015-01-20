@@ -407,16 +407,6 @@ public class PasswordActivity extends LockingActivity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		switch ( item.getItemId() ) {
-		case R.id.menu_about:
-			AboutDialog dialog = new AboutDialog(this);
-			dialog.show();
-			return true;
-			
-		case R.id.menu_app_settings:
-			AppSettingsActivity.Launch(this);
-			return true;
-		}
 		
 		return super.onOptionsItemSelected(item);
 	}
